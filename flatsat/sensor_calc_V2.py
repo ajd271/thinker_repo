@@ -50,12 +50,28 @@ def yaw_am(accelX,accelY,accelZ,magX,magY,magZ):
 #Activity 2: RPY based on gyroscope
 def roll_gy(prev_angle, delT, gyro):
     #TODO
+    roll = (
+    
+    prev_angle+
+    gyro * delT
+    
+    )
     return roll
 def pitch_gy(prev_angle, delT, gyro):
-    #TODO
+    pitch = (
+    
+    prev_angle+
+    gyro * delT
+    
+    )
     return pitch
 def yaw_gy(prev_angle, delT, gyro):
-    #TODO
+    yaw = (
+    
+    prev_angle+
+    gyro * delT
+    
+    )
     return yaw
 
 #Activity 3: Sensor calibration

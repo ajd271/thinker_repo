@@ -19,7 +19,7 @@ from git import Repo
 sys.path.append('/path/to/directory/containing/sensor_calc_V2')
 from sensor_calc_V2 import *
 from picamera2 import Picamera2
-
+from multiprocessing import Process
 #imu initialization
 i2c = busio.I2C(board.SCL, board.SDA)
 accel_gyro = LSM6DS(i2c)
@@ -32,10 +32,10 @@ y1 = []
 y2 = []
 y3 = []
 rpy = [0,0,0]
-THRESHOLD = 0.5      #Any desired value from the accelerometer
+THRESHOLD = 0.02      #Any desired value from the accelerometer
 REPO_PATH = "/home/pi/thinker_repo"     #Your github repo path: ex. /home/pi/FlatSatChallenge
 FOLDER_PATH = "/flatsat"   #Your image folder path in your GitHub repo: ex. /Images
-
+rocket = 0
 def animate(i, xs, type,y1,y2,y3, mag_offset, gyro_offset, initial_angle):
     if len(y1) ==0:
         prev_ang = initial_angle
@@ -98,29 +98,48 @@ def animate(i, xs, type,y1,y2,y3, mag_offset, gyro_offset, initial_angle):
     plt.xlabel('Time')
 
 def plot_data(type = 'am'):
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+    filename = f"photo_{timestamp}.jpg"
+    
     mag_offset = calibrate_mag()
     initial_angle = set_initial(mag_offset)
     gyro_offset = calibrate_gyro()
     ani = animation.FuncAnimation(fig, animate, fargs =(xs,type,y1,y2,y3,mag_offset,gyro_offset,initial_angle), interval = 1000)
+
     plt.show()
+    
+
 
 def take_photo():
-
-    while True:
+    print("Photo process started")
+    while not stop_event.is_set():
         accelx, accely, accelz = accel_gyro.acceleration
         
         if accelx>THRESHOLD and accely>THRESHOLD:
         #CHECKS IF READINGS ARE ABOVE THRESHOLD
+            timestamp = time.strftime("%Y%m%d_%H%M%S")
+            filename = f"photo_{timestamp}.jpg"
             time.sleep(2) #PAUSE
             name = "ThinkerS"     #First Name, Last Initial  ex. MasonM
             picam2.start_and_capture_file(filename)
-            git_push()
+           # git_push()
             print("Photo saved successfully") 
             
 
+            
+
+
 if __name__ == '__main__':
-    plot_data(*sys.argv[1:])
-    timestamp = time.strftime("%Y%m%d_%H%M%S")
-    filename = f"photo_{timestamp}.jpg"
-    take_photo()
+    process1 = Process(target=plot_data, args=('am',))  # Start plot process
+    process2 = Process(target=take_photo)  # Start photo-taking process
+
+    process1.start()
+    process2.start()
+
+    process1.join()
+    process2.join()  # Wait for both processes to finish
+    
+ 
+
+
 

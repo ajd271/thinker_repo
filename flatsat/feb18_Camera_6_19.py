@@ -11,7 +11,7 @@ from adafruit_lsm6ds.lsm6dsox import LSM6DSOX as LSM6DS
 from adafruit_lis3mdl import LIS3MDL
 from git import Repo
 from picamera2 import Picamera2
-from feb16camera import calculate_average_light  # Import the function
+from image_processor import *  # Import the function
 
 # VARIABLES
 THRESHOLD = 0.08  # Acceleration threshold for detecting a shake

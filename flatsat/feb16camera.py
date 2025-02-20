@@ -5,19 +5,18 @@ from adafruit_lsm6ds.lsm6dsox import LSM6DSOX as LSM6DS
 from adafruit_lis3mdl import LIS3MDL
 from git import Repo
 from picamera2 import Picamera2
-
+from image_processor.py import *
 # VARIABLES
 THRESHOLD = 0.08      # Any desired value from the accelerometer
 REPO_PATH = "/home/pi/thinker_repo"  # Your GitHub repo path
 FOLDER_PATH = "/flatsat"  # Image folder path in your GitHub repo
 NUM_PHOTOS = 3  # Number of photos to take per shake event
 PHOTO_INTERVAL = 1  # Seconds between photos
-
 # IMU and camera initialization
 i2c = board.I2C()
 accel_gyro = LSM6DS(i2c)
 mag = LIS3MDL(i2c)
-picam2 = Picamera2()
+picam2 = Picamera2()s
 
 def git_push():
     """

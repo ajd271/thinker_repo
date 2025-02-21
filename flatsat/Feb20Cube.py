@@ -44,7 +44,7 @@ def main():
     calibrate_gyro()
     calibrate_mag()
     print("You can now place cubesat on gantry")
-    time.sleep(20)  # give time to place cubesat on gantrys
+    time.sleep(10)  # give time to place cubesat on gantrys
 
     initial_image_path = os.path.join(IMAGE_DIR, "initial.jpg")
     capture_image(initial_image_path)
@@ -69,7 +69,7 @@ def main():
         if len(acceleration_data) > 20:
             acceleration_data.pop(0)
         displacement = compute_displacement(acceleration_data, 0.1)
-        if abs(displacement) < 0.5:  # Threshold for detecting return to start position
+        if abs(displacement) < 0.9:  # Threshold for detecting return to start position
             print("CubeSat has returned to its original position. Capturing second image...")
             second_image_path = os.path.join(IMAGE_DIR, "second.jpg")
             capture_image(second_image_path)
@@ -80,7 +80,7 @@ def main():
     initial_brightness = calculate_average_light(initial_image_path)
     second_brightness = calculate_average_light(second_image_path)
     brightness_diff = np.array(initial_brightness) - np.array(second_brightness)
-    total_brightness_diff = np.sum(abs(brightness_diff))
+    total_brightness_diff = np.sum((brightness_diff))
     
     # Save to CSV
     csv_filename = os.path.join(SCRIPT_DIR, "brightness_diff.csv")
@@ -89,18 +89,23 @@ def main():
     # Generate grayscale image from brightness difference
     diff_image = Image.fromarray(np.uint8(np.clip(brightness_diff, 0, 255)))
     diff_image.save(os.path.join(IMAGE_DIR, "brightness_diff.jpg"))
+    diff_image_path = os.path.join(IMAGE_DIR, "brightness_diff.jpg")
     
     # Upload to GitHub (assuming script is configured for GitHub upload)
-    subprocess.run(["git", "add", csv_filename])
+    subprocess.run(["git", "add", csv_filename, initial_image_path, second_image_path, diff_image_path])
     subprocess.run(["git", "commit", "-m", "Updated brightness difference data"]) 
     subprocess.run(["git", "push"])
     
     # Threshold check for power outage
-    BRIGHTNESS_THRESHOLD = 500000  # Adjust based on expected conditions
+    BRIGHTNESS_THRESHOLD = 100000  # Adjust based on expected conditions
     if total_brightness_diff > BRIGHTNESS_THRESHOLD:
         print("Significant brightness change detected: Potential power outage.")
     else:
-        print("Brightness difference within normal range.")
+        if (abs(total_brightness_diff)>BRIGHTNESS_THRESHOLD):
+            print("Brightness change detected: Power potentially restored.")
+        else:
+            print("Brightness difference within normal range.")
+    
 
 if __name__ == "__main__":
     main()

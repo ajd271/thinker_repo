@@ -69,7 +69,7 @@ def main():
         print(f"🖼 Grayscale image saved: {grayscale_path}")
 
         # Upload to GitHub
-        upload_to_github(grayscale_path, csv_path)
+        upload_to_github(grayscale_path, csv_path, image_path)
 
         time.sleep(2)  # Small delay between captures
 

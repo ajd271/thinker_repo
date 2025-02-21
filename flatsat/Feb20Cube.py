@@ -36,7 +36,7 @@ def compute_displacement(acceleration_data, time_interval):
     displacement = 0
     for accel in acceleration_data:
         velocity += accel * time_interval
-        displacement += velocity * time_interval
+        displacement += velocity * time_interval + 0.5 * accel * (time_interval ** 2)
     return displacement
 
 def main():
@@ -51,9 +51,9 @@ def main():
     print("Initial image captured. CubeSat can now be moved.")
     acceleration_data = []
     start_time = time.time()
-'''    while time.time() - start_time <2:
-        acceleration_data.append(accel_gyro.acceleration[0])
-        time.sleep(0.1) '''
+    #while time.time() - start_time <2:
+        #acceleration_data.append(accel_gyro.acceleration[0])
+        #time.sleep(0.1) 
     
     while True:
         acceleration_data.append(accel_gyro.acceleration[0]) 

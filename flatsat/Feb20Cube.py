@@ -41,25 +41,40 @@ def compute_displacement(acceleration_data, time_interval):
 
 def main():
     print("Initializing sensors...")
-    initialize_sensors()  # Ensure this function is available in sensor_calc_V2
-    time.sleep(5)  # Wait for sensors to calibrate
-    print("Sensors initialized. Capturing initial image...")
+    calibrate_gyro()
+    calibrate_mag()
+    print("You can now place cubesat on gantry")
+    time.sleep(20)  # give time to place cubesat on gantrys
 
     initial_image_path = os.path.join(IMAGE_DIR, "initial.jpg")
     capture_image(initial_image_path)
     print("Initial image captured. CubeSat can now be moved.")
-
     acceleration_data = []
     start_time = time.time()
-    while time.time() - start_time < 2:
-        acceleration_data.append(get_acceleration())  # Assuming get_acceleration() gives acceleration in m/s^2
-        time.sleep(0.1)  # Collect data at 10Hz
+'''    while time.time() - start_time <2:
+        acceleration_data.append(accel_gyro.acceleration[0])
+        time.sleep(0.1) '''
     
-    displacement = compute_displacement(acceleration_data, 0.1)
-    if abs(displacement) < 0.05:  # Threshold for detecting return to start position
-        print("CubeSat has returned to its original position. Capturing second image...")
-        second_image_path = os.path.join(IMAGE_DIR, "second.jpg")
-        capture_image(second_image_path)
+    while True:
+        acceleration_data.append(accel_gyro.acceleration[0]) 
+        if len(acceleration_data) > 20:
+            acceleration_data.pop(0)
+        displacement = compute_displacement(acceleration_data, 0.1)
+        if abs(displacement) > 1:  # Threshold for detecting return to start position
+            print("CubeSat has travelled far enough")
+            break
+        time.sleep(0.1)
+    while True:
+        acceleration_data.append(accel_gyro.acceleration[0])  
+        if len(acceleration_data) > 20:
+            acceleration_data.pop(0)
+        displacement = compute_displacement(acceleration_data, 0.1)
+        if abs(displacement) < 0.5:  # Threshold for detecting return to start position
+            print("CubeSat has returned to its original position. Capturing second image...")
+            second_image_path = os.path.join(IMAGE_DIR, "second.jpg")
+            capture_image(second_image_path)
+            break
+        time.sleep(0.1)
     
     # Analyze brightness differences
     initial_brightness = calculate_average_light(initial_image_path)
@@ -81,7 +96,7 @@ def main():
     subprocess.run(["git", "push"])
     
     # Threshold check for power outage
-    BRIGHTNESS_THRESHOLD = 50000  # Adjust based on expected conditions
+    BRIGHTNESS_THRESHOLD = 500000  # Adjust based on expected conditions
     if total_brightness_diff > BRIGHTNESS_THRESHOLD:
         print("Significant brightness change detected: Potential power outage.")
     else:

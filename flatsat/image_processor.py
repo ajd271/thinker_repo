@@ -16,15 +16,17 @@ def calculate_average_light(image_path, block_size=10):
    
     # Iterate over the image in block_size steps
     for y in range(0, height, block_size):
+        row = []
         for x in range(0, width, block_size):
             # Extract block
             block = img_array[y:y+block_size, x:x+block_size]
            
             # Calculate average brightness of the block
             avg_brightness = np.mean(block)
-            brightness_values.append(((x, y), avg_brightness))
-   
-    return brightness_values
+            row.append(avg_brightness)
+        brightness_values.append(row)
+    return np.array(brightness_values)
+
 
 # Example usage
 if __name__ == "__main__":

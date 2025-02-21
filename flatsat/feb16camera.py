@@ -16,7 +16,7 @@ PHOTO_INTERVAL = 1  # Seconds between photos
 i2c = board.I2C()
 accel_gyro = LSM6DS(i2c)
 mag = LIS3MDL(i2c)
-picam2 = Picamera2()s
+picam2 = Picamera2()
 
 def git_push():
     """

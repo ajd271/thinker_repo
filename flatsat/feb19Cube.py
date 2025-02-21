@@ -1,116 +1,77 @@
-# AUTHOR: 
-# DATE:
-
-# Import necessary libraries
-import time
-import board
-import sys
-import csv
 import os
-import numpy as np
+import time
+import csv
+from datetime import datetime
 from PIL import Image
-from adafruit_lsm6ds.lsm6dsox import LSM6DSOX as LSM6DS
-from adafruit_lis3mdl import LIS3MDL
-from git import Repo
-from picamera2 import Picamera2
-from feb16camera import calculate_average_light  # Import brightness function
+import numpy as np
+from picamera2 import Picamera2  # Ensure you have this installed
+from image_processor import calculate_average_light  # Import your function
+import subprocess  # For uploading to GitHub
+from sensor_calc_V2 import *
 
-# VARIABLES
-THRESHOLD = 0.08  # Acceleration threshold
-REPO_PATH = "/home/pi/thinker_repo"
-FOLDER_PATH = "/flatsat/images"  # Now stores everything in 'images' folder
-CSV_FILE = f"{REPO_PATH}/{FOLDER_PATH}/brightness_data.csv"
-IMAGE_INTERVAL = 3  # Time (in seconds) between each photo
-BLOCK_SIZE = 10  # Grid size for brightness processing
+# Ensure the images folder exists
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))  # Get current script's directory
+IMAGE_DIR = os.path.join(SCRIPT_DIR, "images")  # Ensure we use the existing images folder
+os.makedirs(IMAGE_DIR, exist_ok=True)
 
-# Ensure the images directory exists
-os.makedirs(REPO_PATH + FOLDER_PATH, exist_ok=True)
+def capture_image(filename): 
+    """Captures an image and saves it to the specified filename."""
+    picam2 = Picamera2()
+    picam2.start()
+    time.sleep(2)  # Allow camera to adjust
+    picam2.capture_file(filename)
+    picam2.close()
 
-# Initialize IMU and Camera
-i2c = board.I2C()
-accel_gyro = LSM6DS(i2c)
-mag = LIS3MDL(i2c)
-picam2 = Picamera2()
-
-def setup_csv():
-    """Create CSV file if it doesn't exist and add headers."""
-    if not os.path.exists(CSV_FILE):
-        with open(CSV_FILE, mode="w", newline="") as file:
-            writer = csv.writer(file)
-            writer.writerow(["Timestamp", "Image Filename", "Brightness Filename", "Brightness Values"])
-
-def save_to_csv(image_path, brightness_image_path, brightness_values):
-    """Save image brightness values to CSV."""
-    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-    with open(CSV_FILE, mode="a", newline="") as file:
+def save_brightness_to_csv(brightness_array, csv_filename):
+    """Saves brightness data to a CSV file."""
+    with open(csv_filename, 'w', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow([timestamp, image_path, brightness_image_path, brightness_values])
+        writer.writerows(brightness_array)
 
-def git_push():
-    """Push new images and CSV data to GitHub."""
+def generate_grayscale_image(brightness_array, image_filename):
+    """Creates and saves a grayscale image based on brightness data."""
+    brightness_array = np.array(brightness_array)  # Ensure it's a NumPy array
+    img = Image.fromarray(brightness_array.astype(np.uint8), mode='L')
+    img.save(image_filename)
+
+def upload_to_github(image_path, csv_path):
+    """Uploads the grayscale image and CSV file to GitHub."""
     try:
-        repo = Repo(REPO_PATH)
-        origin = repo.remote('origin')
-        origin.pull()
-        repo.git.add(REPO_PATH + FOLDER_PATH)
-        repo.index.commit('New Photo, Brightness Data, and Grayscale Image')
-        origin.push()
-        print('Uploaded images, grayscale JPG, and CSV data to GitHub')
-    except:
-        print("Couldn't upload to GitHub")
-
-def img_gen(name, suffix=""):
-    """Generate a timestamped filename inside images folder."""
-    t = time.strftime("_%H%M%S")
-    return f'{REPO_PATH}/{FOLDER_PATH}/{name}{t}{suffix}.jpg'
-
-def generate_grayscale_image(brightness_values, filename):
-    """Create a grayscale image using brightness values."""
-    size = int(np.sqrt(len(brightness_values)))  # Assuming square grid
-    image_data = np.array(brightness_values, dtype=np.uint8).reshape((size, size))
-    img = Image.fromarray(image_data, mode='L')  # Convert array to grayscale image
-    img.save(filename)
-    print(f"Grayscale image saved: {filename}")
-
-def take_photos(duration):
-    """Take multiple photos for the specified duration and save brightness data."""
-    setup_csv()
-    start_time = time.time()
-    name = "ThinkerS"
-
-    while time.time() - start_time < duration:
-        accelx, accely, accelz = accel_gyro.acceleration
-        
-        if accelx > THRESHOLD or accely > THRESHOLD:
-            time.sleep(2)  # Pause before capturing
-            image_filename = img_gen(name)
-            picam2.start_and_capture_file(image_filename)
-            print(f"Photo saved: {image_filename}")
-
-            # Analyze brightness
-            brightness_values = calculate_average_light(image_filename, BLOCK_SIZE)
-            print(f"Brightness Values: {brightness_values}")
-
-            # Create grayscale image
-            grayscale_filename = img_gen(name, "_grayscale")
-            generate_grayscale_image(brightness_values, grayscale_filename)
-
-            # Save to CSV
-            save_to_csv(image_filename, grayscale_filename, brightness_values)
-
-        time.sleep(IMAGE_INTERVAL)  # Wait before taking another photo
-
-    git_push()
+        subprocess.run(["git", "add", image_path, csv_path], check=True)
+        subprocess.run(["git", "commit", "-m", f"Added image & CSV: {os.path.basename(image_path)}"], check=True)
+        subprocess.run(["git", "push"], check=True)
+        print("✅ Files uploaded to GitHub successfully!")
+    except subprocess.CalledProcessError:
+        print("⚠ Error uploading to GitHub. Check your repo setup.")
 
 def main():
-    """Main function to get user input and start photo capture."""
-    if len(sys.argv) < 2:
-        print("Usage: python3 feb16camera.py <duration_in_seconds>")
-        sys.exit(1)
+    """Main function to take photos and process brightness."""
+    duration = int(input("Enter the duration for image capture (in seconds): "))
+    start_time = time.time()
+   
+    while time.time() - start_time < duration:
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        image_path = os.path.join(IMAGE_DIR, f"image_{timestamp}.jpg")
+        csv_path = os.path.join(IMAGE_DIR, f"brightness_{timestamp}.csv")
+        grayscale_path = os.path.join(IMAGE_DIR, f"grayscale_{timestamp}.jpg")
 
-    duration = int(sys.argv[1])
-    print(f"Running for {duration} seconds...")
-    take_photos(duration)
+        # Capture image
+        capture_image(image_path)
+        print(f"📸 Image saved: {image_path}")
 
-if __name__ == '__main__':
+        # Process brightness
+        brightness_array = calculate_average_light(image_path)
+        save_brightness_to_csv(brightness_array, csv_path)
+        print(f"📊 Brightness CSV saved: {csv_path}")
+
+        # Generate grayscale image
+        generate_grayscale_image(brightness_array, grayscale_path)
+        print(f"🖼 Grayscale image saved: {grayscale_path}")
+
+        # Upload to GitHub
+        upload_to_github(grayscale_path, csv_path)
+
+        time.sleep(2)  # Small delay between captures
+
+if __name__ == "__main__":
     main()

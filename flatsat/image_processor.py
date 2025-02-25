@@ -28,10 +28,4 @@ def calculate_average_light(image_path, block_size=10):
     return np.array(brightness_values)
 
 
-# Example usage
-if __name__ == "__main__":
-    image_path = "your_image.jpg"  # Change this to your image path
-    brightness_data = calculate_average_light(image_path)
-   
-    for position, brightness in brightness_data:
-        print(f"Block at {position}: Average brightness = {brightness:.2f}")
+

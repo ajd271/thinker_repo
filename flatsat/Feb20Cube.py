@@ -91,7 +91,7 @@ def main():
     diff_image.save(os.path.join(IMAGE_DIR, "brightness_diff.jpg"))
     diff_image_path = os.path.join(IMAGE_DIR, "brightness_diff.jpg")
     
-    # Upload to GitHub (assuming script is configured for GitHub upload)
+    # Upload to GitHub 
     subprocess.run(["git", "add", csv_filename, initial_image_path, second_image_path, diff_image_path])
     subprocess.run(["git", "commit", "-m", "Updated brightness difference data"]) 
     subprocess.run(["git", "push"])

@@ -60,7 +60,7 @@ def main():
         if len(acceleration_data) > 20:
             acceleration_data.pop(0)
         displacement = compute_displacement(acceleration_data, 0.1)
-        if abs(displacement) > 1:  # Threshold for detecting return to start position
+        if abs(displacement) > 1:  # Determine whether CubeSat has travelled far enough from start position
             print("CubeSat has travelled far enough")
             break
         time.sleep(0.1)
@@ -69,7 +69,7 @@ def main():
         if len(acceleration_data) > 20:
             acceleration_data.pop(0)
         displacement = compute_displacement(acceleration_data, 0.1)
-        if abs(displacement) < 0.9:  # Threshold for detecting return to start position
+        if abs(displacement) < 0.3:  # Margin of Error for detecting return to start position
             print("CubeSat has returned to its original position. Capturing second image...")
             second_image_path = os.path.join(IMAGE_DIR, "second.jpg")
             capture_image(second_image_path)

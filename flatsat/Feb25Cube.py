@@ -83,12 +83,13 @@ def overlay_outage_map(image_path, initial_matrix, second_matrix, threshold, out
     image.save(output_path)
 
 def main():
+    """
     print("Initializing sensors...")
     calibrate_gyro()
     calibrate_mag()
     print("You can now place CubeSat on gantry")
     time.sleep(10)
-   
+    """   
     timestamp = get_timestamp()
     initial_image_path = os.path.join(IMAGE_DIR, f"initial_{timestamp}.jpg")
     capture_image(initial_image_path)

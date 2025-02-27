@@ -36,6 +36,7 @@ def compute_displacement(acceleration_data, time_interval):
         displacement += velocity * time_interval + 0.5 * accel * (time_interval ** 2)
     return displacement
 
+
 def normalize_brightness(pixels):
     """Normalize brightness levels by scaling them to the same average."""
     avg_brightness = np.mean(pixels)
@@ -45,7 +46,7 @@ def analyze_brightness_blocks(image_path, threshold):
     """Analyzes brightness in 10x10 pixel blocks after normalization."""
     image = Image.open(image_path).convert("L")
     pixels = np.array(image, dtype=np.float32)  # Convert to float for scaling
-    #pixels = normalize_brightness(pixels)  # Apply normalization
+    pixels = normalize_brightness(pixels)  # Apply normalization
 
     width, height = image.size
     status_matrix = []
@@ -54,8 +55,8 @@ def analyze_brightness_blocks(image_path, threshold):
         row = []
         for x in range(0, width, 10):
             block = pixels[y:y+10, x:x+10]
-            #avg_brightness = np.mean(block)
-            #row.append(avg_brightness)
+            avg_brightness = np.mean(block)
+            row.append(avg_brightness)
         status_matrix.append(row)
 
     return status_matrix
@@ -70,7 +71,7 @@ def save_brightness_to_csv(initial_matrix, second_matrix, csv_filename, threshol
             for j, (val1, val2) in enumerate(zip(row1, row2)):
                 if val1 - val2 > threshold:
                     status = "Outage"
-                elif val2 - val1 > (threshold + 20):
+                elif val2 - val1 > (threshold + 90):
                     status = "Restored"
                 else:
                     status = "Same"
@@ -85,7 +86,7 @@ def overlay_outage_map(image_path, initial_matrix, second_matrix, threshold, out
         for x, (val1, val2) in enumerate(zip(row1, row2)):
             if val1 - val2 > threshold:
                 draw.rectangle([(x*10, y*10), (x*10+10, y*10+10)], width=2, fill=(255, 0, 0, 100))
-            elif val2 - val1 > (threshold+20):
+            elif val2 - val1 > (threshold+90):
                 draw.rectangle([(x*10, y*10), (x*10+10, y*10+10)], width=2, fill=(0, 255, 0, 100))
    
     image.save(output_path)

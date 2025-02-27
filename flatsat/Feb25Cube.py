@@ -37,13 +37,20 @@ def compute_displacement(acceleration_data, time_interval):
     return displacement
 
 
+def normalize_brightness(pixels):
+    """Normalize brightness levels by scaling them to the same average."""
+    avg_brightness = np.mean(pixels)
+    return pixels * (100 / avg_brightness)  # Scale so avg is around 100
+
 def analyze_brightness_blocks(image_path, threshold):
-    """Analyzes brightness in 10x10 pixel blocks and returns a matrix indicating power outage areas."""
+    """Analyzes brightness in 10x10 pixel blocks after normalization."""
     image = Image.open(image_path).convert("L")
+    pixels = np.array(image, dtype=np.float32)  # Convert to float for scaling
+    pixels = normalize_brightness(pixels)  # Apply normalization
+
     width, height = image.size
-    pixels = np.array(image)
     status_matrix = []
-   
+
     for y in range(0, height, 10):
         row = []
         for x in range(0, width, 10):
@@ -51,7 +58,9 @@ def analyze_brightness_blocks(image_path, threshold):
             avg_brightness = np.mean(block)
             row.append(avg_brightness)
         status_matrix.append(row)
+
     return status_matrix
+
 
 def save_brightness_to_csv(initial_matrix, second_matrix, csv_filename, threshold):
     """Saves block-wise brightness analysis to a CSV file with outage and restoration data."""

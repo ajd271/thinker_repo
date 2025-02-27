@@ -9,7 +9,7 @@ from image_processor import calculate_average_light
 import subprocess  # For uploading to GitHub
 from sensor_calc_V2 import *  # Import sensor functions
 
-# Ensure the images folder exists
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 IMAGE_DIR = os.path.join(SCRIPT_DIR, "images")
 os.makedirs(IMAGE_DIR, exist_ok=True)
@@ -124,7 +124,7 @@ def main():
     second_image_path = os.path.join(IMAGE_DIR, f"second_{timestamp}.jpg")
     capture_image(second_image_path)
    
-    BRIGHTNESS_THRESHOLD = 100  # Adjust based on expected conditions
+    BRIGHTNESS_THRESHOLD = 150  # Adjust based on expected conditions
     initial_brightness = analyze_brightness_blocks(initial_image_path, BRIGHTNESS_THRESHOLD)
     second_brightness = analyze_brightness_blocks(second_image_path, BRIGHTNESS_THRESHOLD)
    

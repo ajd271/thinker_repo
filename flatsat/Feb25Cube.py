@@ -71,7 +71,7 @@ def save_brightness_to_csv(initial_matrix, second_matrix, csv_filename, threshol
             for j, (val1, val2) in enumerate(zip(row1, row2)):
                 if val1 - val2 > threshold:
                     status = "Outage"
-                elif val2 - val1 > (threshold + 40):
+                elif val2 - val1 > (threshold + 90):
                     status = "Restored"
                 else:
                     status = "Same"
@@ -86,7 +86,7 @@ def overlay_outage_map(image_path, initial_matrix, second_matrix, threshold, out
         for x, (val1, val2) in enumerate(zip(row1, row2)):
             if val1 - val2 > threshold:
                 draw.rectangle([(x*10, y*10), (x*10+10, y*10+10)], width=2, fill=(255, 0, 0, 100))
-            elif val2 - val1 > (threshold+40):
+            elif val2 - val1 > (threshold+90):
                 draw.rectangle([(x*10, y*10), (x*10+10, y*10+10)], width=2, fill=(0, 255, 0, 100))
    
     image.save(output_path)

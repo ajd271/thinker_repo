@@ -92,8 +92,8 @@ def main():
     timestamp = get_timestamp()
     initial_image_path = os.path.join(IMAGE_DIR, f"initial_{timestamp}.jpg")
     capture_image(initial_image_path)
-    print("Initial image captured. CubeSat can now be moved.")
-   
+    print("Initial image captured. Waiting 5 seconds to capture second image.....")
+   '''
     acceleration_data = []
     while True:
         acceleration_data.append(accel_gyro.acceleration[0])
@@ -115,7 +115,13 @@ def main():
             second_image_path = os.path.join(IMAGE_DIR, f"second_{timestamp}.jpg")
             capture_image(second_image_path)
             break
-        time.sleep(0.1)
+        time.sleep(0.1)'''
+        
+    
+    time.sleep(5)
+    print("Now capturing second image")
+    second_image_path = os.path.join(IMAGE_DIR, f"second_{timestamp}.jpg")
+    capture_image(second_image_path)
    
     BRIGHTNESS_THRESHOLD = 100  # Adjust based on expected conditions
     initial_brightness = analyze_brightness_blocks(initial_image_path, BRIGHTNESS_THRESHOLD)

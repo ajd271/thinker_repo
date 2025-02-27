@@ -125,7 +125,7 @@ def main():
     second_image_path = os.path.join(IMAGE_DIR, f"second_{timestamp}.jpg")
     capture_image(second_image_path)
    
-    BRIGHTNESS_THRESHOLD = 150  # Adjust based on expected conditions
+    BRIGHTNESS_THRESHOLD = 70  # Adjust based on expected conditions
     initial_brightness = analyze_brightness_blocks(initial_image_path, BRIGHTNESS_THRESHOLD)
     second_brightness = analyze_brightness_blocks(second_image_path, BRIGHTNESS_THRESHOLD)
    
